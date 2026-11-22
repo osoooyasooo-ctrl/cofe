@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بيتي كافيه | Beity Cafe Menu</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts (Cairo) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Tailwind Configuration for Cafe Theme -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cafe: {
+                            dark: '#2C1A12',      // Deep Espresso Brown
+                            medium: '#4A2E2B',    // Roasted Coffee
+                            warm: '#8C4A27',      // Warm Cinnamon
+                            accent: '#C88A55',    // Caramel Gold
+                            cream: '#FAF6F0',     // Light Cream Background
+                            card: '#FFFFFF',      // Pure White Card
+                            border: '#EFE3D3'     // Soft Sand Border
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #FAF6F0;
+            color: #2C1A12;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FAF6F0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #C88A55;
+            border-radius: 999px;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .badge-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .7; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between pb-24">
+
+    <!-- TOP HEADER -->
+    <header class="bg-cafe-dark text-cafe-cream sticky top-0 z-30 shadow-md transition-all">
+        <div class="max-w-md mx-auto px-3 pt-1.5 flex justify-end">
+            <button onclick="promptOwnerAccess()" class="w-9 h-7 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity" aria-label="إعدادات" title="الإعدادات">
+                <span class="text-base leading-none">⚙️</span>
+            </button>
+        </div>
+        <div class="max-w-md mx-auto px-4 pt-1 pb-4">
+            
+            <!-- Branding Header -->
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cafe-accent to-amber-600 flex items-center justify-center text-white text-2xl shadow-lg border border-amber-400/30">
+                        <i class="fa-solid font-bold fa-mug-hot"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-black tracking-wide text-amber-100 flex items-center gap-2">
+                            <span id="cafe-name">بيتي كافيه</span>
+                            <span class="text-xs bg-amber-700/60 text-amber-200 font-semibold px-2 py-0.5 rounded-full border border-amber-500/30">Beity</span>
+                        </h1>
+                        <p class="text-xs text-amber-200/80 font-medium">قهوتك على مزاجك.. كأنك في بيتك ☕✨</p>
+                    </div>
+                </div>
+
+                <!-- Top Quick Actions (QR & Cart Trigger) -->
+                <div class="flex items-center gap-2">
+                    
+                    <button onclick="toggleCartDrawer()" class="relative w-10 h-10 rounded-xl bg-cafe-accent text-white flex items-center justify-center shadow-lg hover:bg-amber-600 transition-all">
+                        <i class="fa-solid fa-receipt text-lg"></i>
+                        <span id="cart-count-badge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-cafe-dark">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="mt-4 relative">
+                <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-amber-300/60 text-sm"></i>
+                <input type="text" id="search-input" oninput="handleSearch()" placeholder="ابحث عن مشروبك أو كيكتك المفضلة..." 
+                    class="w-full bg-white/10 text-white placeholder-amber-200/50 pr-10 pl-4 py-2.5 rounded-xl border border-white/10 text-sm focus:outline-none focus:ring-2 focus:ring-cafe-accent focus:bg-white/15 transition-all">
+                <button id="clear-search" onclick="clearSearch()" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-amber-300/60 hover:text-white text-xs">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- STICKY CATEGORIES TABS -->
+        <div class="bg-cafe-medium border-t border-white/10 shadow-inner">
+            <div class="max-w-md mx-auto px-4 py-2.5 flex gap-2 overflow-x-auto hide-scrollbar text-sm font-semibold" id="category-tabs">
+                <!-- Categories dynamically injected or rendered -->
+                <button onclick="setCategory('all')" id="cat-tab-all" class="cat-btn active flex-shrink-0 px-4 py-1.5 rounded-xl bg-cafe-accent text-white shadow-sm transition-all">
+                    الكل 🌟
+                </button>
+                <button onclick="setCategory('hot')" id="cat-tab-hot" class="cat-btn flex-shrink-0 px-4 py-1.5 rounded-xl bg-white/10 text-amber-100 hover:bg-white/20 transition-all">
+                    مشروبات سخنة ☕
+                </button>
+                <button onclick="setCategory('cold')" id="cat-tab-cold" class="cat-btn flex-shrink-0 px-4 py-1.5 rounded-xl bg-white/10 text-amber-100 hover:bg-white/20 transition-all">
+                    مشروبات ساقعة 🥤
+                </button>
+                <button onclick="setCategory('sweets')" id="cat-tab-sweets" class="cat-btn flex-shrink-0 px-4 py-1.5 rounded-xl bg-white/10 text-amber-100 hover:bg-white/20 transition-all">
+                    كيكات وحلويات 🍰
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN MENU CONTAINER -->
+    <main class="max-w-md mx-auto px-4 pt-4 pb-12 flex-grow w-full">
+        
+        <!-- Cafe Announcement / Banner -->
+        <div class="mb-4 bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200/80 rounded-2xl p-3.5 flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-3">
+                <span class="w-9 h-9 rounded-full bg-amber-500/20 text-cafe-warm flex items-center justify-center text-lg flex-shrink-0">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </span>
+                <div>
+                    <h3 class="text-xs font-bold text-cafe-dark">جرب مشروباتنا الخاصة اليوم!</h3>
+                    <p class="text-[11px] text-cafe-medium font-medium">مكونات فريش وطازجة تُعد بحب لأجلك.</p>
+                </div>
+            </div>
+            <span class="text-[10px] bg-amber-700 text-white px-2 py-0.5 rounded-full font-bold">100% طازج</span>
+        </div>
+
+        <!-- Section Title -->
+        <div class="flex items-center justify-between mb-3">
+            <h2 id="section-title" class="text-base font-extrabold text-cafe-dark flex items-center gap-2">
+                <span>كل القائمة</span>
+                <span id="items-count" class="text-xs bg-cafe-accent/15 text-cafe-warm px-2 py-0.5 rounded-full font-bold">0</span>
+            </h2>
+            <span class="text-xs text-slate-500 font-medium">الأسعار بالجنيه المصري (ج.م)</span>
+        </div>
+
+        <!-- Menu Cards Grid -->
+        <div id="menu-grid" class="grid grid-cols-1 gap-3.5">
+            <!-- Dynamically populated via JS -->
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="empty-state" class="hidden text-center py-12 px-4">
+            <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-amber-100 text-cafe-warm flex items-center justify-center text-2xl">
+                <i class="fa-solid fa-mug-saucer"></i>
+            </div>
+            <h3 class="text-sm font-bold text-cafe-dark mb-1">لم نجد أصناف مطابقة للبث</h3>
+            <p class="text-xs text-slate-500">جرب البحث بكلمات أخرى أو تصفح الأقسام</p>
+        </div>
+    </main>
+
+    <!-- FLOATING CART / ORDER DRAWER -->
+    <div id="cart-drawer" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="fixed inset-y-0 left-0 max-w-md w-full bg-cafe-cream shadow-2xl flex flex-col justify-between transform -translate-x-full transition-transform duration-300 dir-rtl" id="cart-drawer-panel">
+            
+            <!-- Cart Header -->
+            <div class="p-4 bg-cafe-dark text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-receipt text-amber-400 text-xl"></i>
+                    <div>
+                        <h3 class="font-bold text-base">حاسبة الطلبات (طلباتك)</h3>
+                        <p class="text-[11px] text-amber-200/80">احسب إجمالي حسابك قبل الطلب</p>
+                    </div>
+                </div>
+                <button onclick="toggleCartDrawer()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Cart Items List -->
+            <div class="p-4 flex-grow overflow-y-auto space-y-3" id="cart-items-container">
+                <!-- Cart items dynamically rendered -->
+            </div>
+
+            <!-- Cart Footer / Summary -->
+            <div class="p-4 bg-white border-t border-cafe-border shadow-lg">
+                <div class="flex justify-between items-center mb-2 text-xs text-slate-500 font-medium">
+                    <span>عدد الأصناف المختارة:</span>
+                    <span id="cart-total-qty" class="font-bold text-cafe-dark">0</span>
+                </div>
+                <div class="flex justify-between items-center mb-4 text-base font-extrabold text-cafe-dark border-t border-dashed pt-2">
+                    <span>إجمالي الحساب:</span>
+                    <span class="text-xl text-cafe-warm font-black"><span id="cart-total-price">0</span> <span class="text-xs font-normal">ج.م</span></span>
+                </div>
+                
+                <button onclick="confirmOrder()" class="w-full mb-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> تسجيل الطلب في طلبات اليوم
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="clearCart()" class="py-2.5 px-3 rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-trash-can"></i> مسح الكل
+                    </button>
+                    <button onclick="copyOrderSummary()" class="py-2.5 px-3 rounded-xl bg-cafe-accent text-white hover:bg-amber-600 text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> نسخ ملخص الطلب
+                    </button>
+                </div>
+                <p class="text-[10px] text-center text-slate-400 mt-2">💡 يمكنك نسخ الطلب وإبرازه للمباشر / الويتر لسرعة التحضير.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- OWNER EDIT CONTROL BAR & FOOTER -->
+    <footer class="bg-cafe-dark text-amber-100 py-4 text-center text-xs border-t border-white/10">
+        <div class="max-w-md mx-auto px-4 flex flex-col items-center gap-2">
+            <p class="text-amber-200/70">جميع الحقوق محفوظة © بيتي كافيه Beity Cafe</p>
+            
+            
+        </div>
+    </footer>
+
+    <!-- OWNER EDIT MODAL -->
+    <div id="owner-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl dir-rtl">
+            <div class="bg-cafe-dark text-white p-4 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <span>⚙️</span>
+                    <h3 class="font-bold text-sm">الإعدادات</h3>
+                </div>
+                <button onclick="closeOwnerModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1 p-2 bg-slate-100 text-[11px] font-bold" id="owner-tabs">
+                <button onclick="setOwnerTab('names')" id="otab-names" class="otab py-2 rounded-lg">الأسماء</button>
+                <button onclick="setOwnerTab('prices')" id="otab-prices" class="otab py-2 rounded-lg">الأسعار</button>
+                <button onclick="setOwnerTab('add')" id="otab-add" class="otab py-2 rounded-lg">إضافة</button>
+                <button onclick="setOwnerTab('orders')" id="otab-orders" class="otab py-2 rounded-lg">طلبات اليوم</button>
+                <button onclick="setOwnerTab('qr')" id="otab-qr" class="otab py-2 rounded-lg">الكيو آر كود</button>
+                <button onclick="setOwnerTab('pass')" id="otab-pass" class="otab py-2 rounded-lg">كلمة المرور</button>
+            </div>
+
+            <div class="p-4 overflow-y-auto flex-grow" id="owner-modal-body">
+                <div id="owner-tab-content"></div>
+            </div>
+
+            <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+                <button onclick="exportUpdatedData()" class="text-xs font-semibold text-cafe-warm hover:underline flex items-center gap-1">
+                    <i class="fa-solid fa-download"></i> تصدير البيانات
+                </button>
+                <button onclick="closeOwnerModal()" class="px-4 py-2 bg-cafe-dark text-white rounded-xl text-xs font-bold">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM PIN INPUT MODAL -->
+    <div id="pin-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 text-center shadow-2xl dir-rtl">
+            <div class="w-10 h-10 rounded-full bg-amber-100 text-cafe-warm mx-auto mb-2 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-key"></i>
+            </div>
+            <h3 class="font-bold text-sm text-cafe-dark mb-1">الإعدادات</h3>
+            <p class="text-xs text-slate-500 mb-3">أدخل الباسورد للدخول إلى الإعدادات</p>
+            
+            <input type="password" id="pin-input" maxlength="12" onkeydown="if(event.key==='Enter')verifyPin()" placeholder="****" class="w-full text-center text-lg tracking-widest p-2 mb-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-cafe-accent">
+            
+            <div class="flex gap-2">
+                <button onclick="verifyPin()" class="flex-1 py-2 bg-cafe-dark text-white rounded-xl text-xs font-bold">دخول</button>
+                <button onclick="closePinModal()" class="flex-1 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-cafe-dark text-white text-xs px-4 py-2.5 rounded-full shadow-2xl border border-amber-500/30 flex items-center gap-2 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-sm" id="toast-icon"></i>
+        <span id="toast-message">تمت العملية بنجاح</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /**
+         * DEFAULT CAFE MENU DATA
+         * Owner can easily edit prices, names, availability (available: true/false).
+         */
+        const DEFAULT_MENU = [
+            // --- مشروبات سخنة ---
+            {
+                id: 101,
+                name: 'قهوة تركي كلاسيك',
+                category: 'hot',
+                price: 35,
+                icon: '☕',
+                description: 'قهوة بن يمني ممتاز محوجة بالحبهان (سادة / مضبوط / زيادة).',
+                available: true,
+                popular: true
+            },
+            {
+                id: 102,
+                name: 'إسبرسو دبل (Double Espresso)',
+                category: 'hot',
+                price: 45,
+                icon: '☕',
+                description: 'جرعة مركزة من البن الإيطالي الفاخر بنكهة غنية وقوية.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 103,
+                name: 'كابتشينو برغوة كلاسيكية',
+                category: 'hot',
+                price: 65,
+                icon: '☕',
+                description: 'مزيج غني من الإسبرسو والحليب المبخر مع رغوة كثيفة ورشة كاكاو.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 104,
+                name: 'لاتيه كلاسيك (Café Latte)',
+                category: 'hot',
+                price: 65,
+                icon: '🥛',
+                description: 'إسبرسو ناعم مع كمية سخية من الحليب المبخر ورغوة خفيفة.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 105,
+                name: 'كافيه موكا شوكولاتة',
+                category: 'hot',
+                price: 75,
+                icon: '🍫',
+                description: 'إسبرسو مع صوص الشوكولاتة البلجيكية والحليب الساخن وكريمة خفق.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 106,
+                name: 'هوت شوكليت مارشميلو',
+                category: 'hot',
+                price: 70,
+                icon: '☕',
+                description: 'شوكولاتة ساخنة غنية ومزينة بقطع المارشميلو الذائبة.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 107,
+                name: 'شاي بالنعناع والقرنفل',
+                category: 'hot',
+                price: 25,
+                icon: '🍵',
+                description: 'شاي أسود فاخر مع أوراق النعناع الفريش ولمسة قرنفل عطرة.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 108,
+                name: 'سحلب بيتي بالمكسرات والفاكهة',
+                category: 'hot',
+                price: 60,
+                icon: '🥣',
+                description: 'سحلب غني بالمكسرات المحمصة والزبيب والموز ورشة قرفة دافئة.',
+                available: true,
+                popular: true
+            },
+
+            // --- مشروبات ساقعة ---
+            {
+                id: 201,
+                name: 'آيس لاتيه (Iced Latte)',
+                category: 'cold',
+                price: 70,
+                icon: '🧊',
+                description: 'إسبرسو منعش مع حليب بارد ومكعبات الثلج النقية.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 202,
+                name: 'آيس سبانش لاتيه (Spanish Latte)',
+                category: 'cold',
+                price: 80,
+                icon: '🥤',
+                description: 'إسبرسو مثلج مع الحليب المحلى المكثف والنكهة الخاصة.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 203,
+                name: 'فرابتشينو كراميل',
+                category: 'cold',
+                price: 85,
+                icon: '🧋',
+                description: 'قهوة مثلجة ممزوجة مع صوص الكراميل والغراميل وكريمة مخفوقة.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 204,
+                name: 'موهيتو ليمون نعناع كلاسيك',
+                category: 'cold',
+                price: 60,
+                icon: '🍹',
+                description: 'مزيج منعش من الليمون الفريش، أوراق النعناع، الصودا والثلج المجروش.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 205,
+                name: 'سموثي مانجو فريش',
+                category: 'cold',
+                price: 65,
+                icon: '🥭',
+                description: 'عصير مانجو طبيعي مكثف ومثلج بدون إضافة ألوان صناعية.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 206,
+                name: 'ميلك شيك أوريو (Oreo Shake)',
+                category: 'cold',
+                price: 75,
+                icon: '🥤',
+                description: 'آيس كريم فانيليا ممزوج مع قطع بسكويت الأوريو وشوكولاتة خفيفة.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 207,
+                name: 'آيس تي خوخ (Iced Tea Peach)',
+                category: 'cold',
+                price: 55,
+                icon: '🍑',
+                description: 'شاي مثلج بنكهة الخوخ الطبيعية المنعشة جداً في الصيف.',
+                available: true,
+                popular: false
+            },
+
+            // --- كيكات وحلويات ---
+            {
+                id: 301,
+                name: 'تشيز كيك لوتس (Lotus Cheesecake)',
+                category: 'sweets',
+                price: 85,
+                icon: '🍰',
+                description: 'تشيز كيك غنية بطبقة بسكويت اللوتس وزبدة اللوتس الذائبة.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 302,
+                name: 'مولتن كيك شوكولاتة مع آيس كريم',
+                category: 'sweets',
+                price: 90,
+                icon: '🧁',
+                description: 'كيك الشوكولاتة الساخن بالحشوة الذائبة يُقدم مع بوله آيس كريم فانيليا.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 303,
+                name: 'ريد فيلفيت كيك (Red Velvet)',
+                category: 'sweets',
+                price: 75,
+                icon: '🍰',
+                description: 'طبقات الكيك المخملي الأحمر الرطب مع كريمة الجبن الناعمة.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 304,
+                name: 'براونيز الشوكولاتة بالآيس كريم',
+                category: 'sweets',
+                price: 80,
+                icon: '🍫',
+                description: 'قطعة براونيز غنية بالمكسرات والشوكولاتة تعلوها بوله آيس كريم.',
+                available: true,
+                popular: false
+            },
+            {
+                id: 305,
+                name: 'وافل نوتيلا وموز',
+                category: 'sweets',
+                price: 85,
+                icon: '🧇',
+                description: 'وافل مقرمش مغطى بشوكولاتة النوتيلا وشرائح الموز والمكسرات.',
+                available: true,
+                popular: true
+            },
+            {
+                id: 306,
+                name: 'سينابون رول كلاسيك (Cinnabon)',
+                category: 'sweets',
+                price: 65,
+                icon: '🥮',
+                description: 'لفة القرفة الدافئة مع صوص الجبن والكراميل وعين الجمل.',
+                available: true,
+                popular: true
+            }
+        ];
+
+        // APP STATE
+        let menuItems = [];
+        let activeCategory = 'all';
+        let searchQuery = '';
+        let cart = {}; // { itemId: quantity }
+        let OWNER_PIN = '1234';
+        try { OWNER_PIN = localStorage.getItem('beity_cafe_pin') || '1234'; } catch (e) {}
+
+        // INITIALIZATION
+        window.onload = function() {
+            loadMenuData();
+            loadCafeName();
+            renderMenu();
+            updateCartBadge();
+        };
+
+        // LOAD MENU DATA (From LocalStorage or Default)
+        function loadMenuData() {
+            const saved = localStorage.getItem('beity_cafe_menu');
+            if (saved) {
+                try {
+                    menuItems = JSON.parse(saved);
+                } catch (e) {
+                    menuItems = [...DEFAULT_MENU];
+                }
+            } else {
+                menuItems = [...DEFAULT_MENU];
+            }
+        }
+
+        // SAVE MENU TO LOCALSTORAGE
+        function saveMenuData() {
+            localStorage.setItem('beity_cafe_menu', JSON.stringify(menuItems));
+        }
+
+        // RENDER MENU CARDS
+        function renderMenu() {
+            const container = document.getElementById('menu-grid');
+            const emptyState = document.getElementById('empty-state');
+            container.innerHTML = '';
+
+            const filtered = menuItems.filter(item => {
+                const matchesCat = activeCategory === 'all' || item.category === activeCategory;
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCat && matchesSearch;
+            });
+
+            document.getElementById('items-count').innerText = filtered.length;
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const inCartQty = cart[item.id] || 0;
+                
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl p-4 border border-cafe-border shadow-sm hover:shadow-md transition-all flex flex-col justify-between relative overflow-hidden ${!item.available ? 'opacity-60 bg-slate-50' : ''}`;
+                
+                card.innerHTML = `
+                    ${item.popular ? `<span class="absolute top-0 left-0 bg-amber-500 text-white text-[10px] font-extrabold px-3 py-0.5 rounded-br-xl shadow-sm">⭐ الأكثر طلباً</span>` : ''}
+                    
+                    <div class="flex items-start gap-3.5 mb-3">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-100 to-orange-100 border border-amber-200/60 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                            ${item.icon || '☕'}
+                        </div>
+                        <div class="flex-grow">
+                            <div class="flex items-center justify-between gap-1">
+                                <h3 class="font-bold text-base text-cafe-dark leading-snug">${item.name}</h3>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">${item.description}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div>
+                            <span class="text-lg font-black text-cafe-warm">${item.price}</span>
+                            <span class="text-xs font-semibold text-slate-500 mr-0.5">ج.م</span>
+                        </div>
+
+                        ${!item.available ? `
+                            <span class="text-xs font-bold text-red-500 bg-red-50 border border-red-200 px-3 py-1 rounded-xl">غير متوفر حالياً</span>
+                        ` : inCartQty > 0 ? `
+                            <div class="flex items-center gap-2 bg-amber-100 border border-amber-300 rounded-xl px-2 py-1">
+                                <button onclick="updateCartQty(${item.id}, -1)" class="w-6 h-6 rounded-lg bg-white text-cafe-dark font-bold text-xs shadow-sm hover:bg-amber-200">-</button>
+                                <span class="text-xs font-black text-cafe-dark px-1">${inCartQty}</span>
+                                <button onclick="updateCartQty(${item.id}, 1)" class="w-6 h-6 rounded-lg bg-cafe-accent text-white font-bold text-xs shadow-sm hover:bg-amber-600">+</button>
+                            </div>
+                        ` : `
+                            <button onclick="addToCart(${item.id})" class="px-3.5 py-1.5 rounded-xl bg-cafe-dark hover:bg-cafe-medium text-amber-100 text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 active:scale-95">
+                                <i class="fa-solid fa-plus text-[10px]"></i> أضف للطلب
+                            </button>
+                        `}
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // CATEGORY SWITCHING
+        function setCategory(cat) {
+            activeCategory = cat;
+            
+            // Update Tab UI
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = 'cat-btn flex-shrink-0 px-4 py-1.5 rounded-xl bg-white/10 text-amber-100 hover:bg-white/20 transition-all';
+            });
+            const activeBtn = document.getElementById(`cat-tab-${cat}`);
+            if (activeBtn) {
+                activeBtn.className = 'cat-btn active flex-shrink-0 px-4 py-1.5 rounded-xl bg-cafe-accent text-white shadow-sm transition-all font-bold';
+            }
+
+            // Update Title
+            const titles = {
+                all: 'كل القائمة',
+                hot: 'المشروبات الساخنة ☕',
+                cold: 'المشروبات الساقعة والمثلجة 🥤',
+                sweets: 'الكيكات والحلويات 🍰'
+            };
+            document.getElementById('section-title').children[0].innerText = titles[cat] || 'القائمة';
+
+            renderMenu();
+        }
+
+        // SEARCH HANDLING
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.trim();
+            const clearBtn = document.getElementById('clear-search');
+            if (searchQuery.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderMenu();
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            searchQuery = '';
+            document.getElementById('clear-search').classList.add('hidden');
+            renderMenu();
+        }
+
+        // CART LOGIC
+        function addToCart(itemId) {
+            cart[itemId] = (cart[itemId] || 0) + 1;
+            renderMenu();
+            updateCartBadge();
+            showToast('تمت إضافة الصنف إلى حاسبة الطلبات');
+        }
+
+        function updateCartQty(itemId, delta) {
+            if (!cart[itemId]) return;
+            cart[itemId] += delta;
+            if (cart[itemId] <= 0) {
+                delete cart[itemId];
+            }
+            renderMenu();
+            renderCartDrawer();
+            updateCartBadge();
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cart-count-badge');
+            const totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
+            if (totalItems > 0) {
+                badge.innerText = totalItems;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function toggleCartDrawer() {
+            const drawer = document.getElementById('cart-drawer');
+            const panel = document.getElementById('cart-drawer-panel');
+            const isOpen = !drawer.classList.contains('opacity-0');
+
+            if (isOpen) {
+                drawer.classList.add('opacity-0', 'pointer-events-none');
+                panel.classList.add('-translate-x-full');
+            } else {
+                renderCartDrawer();
+                drawer.classList.remove('opacity-0', 'pointer-events-none');
+                panel.classList.remove('-translate-x-full');
+            }
+        }
+
+        function renderCartDrawer() {
+            const container = document.getElementById('cart-items-container');
+            container.innerHTML = '';
+            
+            let totalQty = 0;
+            let totalPrice = 0;
+
+            const cartKeys = Object.keys(cart);
+
+            if (cartKeys.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-basket-shopping text-4xl mb-2 text-slate-300"></i>
+                        <p class="text-xs font-bold">حاسبة الطلبات فارغة</p>
+                        <p class="text-[11px] text-slate-400">اختر بعض المشروبات أو الحلويات لبدء حساب فاتورتك</p>
+                    </div>
+                `;
+            } else {
+                cartKeys.forEach(id => {
+                    const item = menuItems.find(m => m.id == id);
+                    if (!item) return;
+
+                    const qty = cart[id];
+                    const itemTotal = item.price * qty;
+                    totalQty += qty;
+                    totalPrice += itemTotal;
+
+                    const row = document.createElement('div');
+                    row.className = 'bg-white p-3 rounded-2xl border border-cafe-border flex items-center justify-between shadow-sm';
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">${item.icon || '☕'}</span>
+                            <div>
+                                <h4 class="font-bold text-xs text-cafe-dark">${item.name}</h4>
+                                <p class="text-[11px] text-cafe-warm font-bold">${item.price} ج.م × ${qty} = <span class="text-cafe-dark">${itemTotal} ج.م</span></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 bg-slate-100 rounded-xl px-2 py-1 border border-slate-200">
+                            <button onclick="updateCartQty(${item.id}, -1)" class="w-5 h-5 rounded bg-white text-slate-700 font-bold text-xs shadow-sm flex items-center justify-center">-</button>
+                            <span class="text-xs font-bold text-cafe-dark px-1">${qty}</span>
+                            <button onclick="updateCartQty(${item.id}, 1)" class="w-5 h-5 rounded bg-cafe-accent text-white font-bold text-xs shadow-sm flex items-center justify-center">+</button>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+
+            document.getElementById('cart-total-qty').innerText = totalQty;
+            document.getElementById('cart-total-price').innerText = totalPrice;
+        }
+
+        function clearCart() {
+            if (Object.keys(cart).length === 0) return;
+            cart = {};
+            renderMenu();
+            renderCartDrawer();
+            updateCartBadge();
+            showToast('تم مسح حاسبة الطلبات');
+        }
+
+        function copyOrderSummary() {
+            if (Object.keys(cart).length === 0) {
+                showToast('السلة فارغة، أضف أصناف أولاً', true);
+                return;
+            }
+
+            let summary = `☕ *طلب جديد - بيتي كافيه*\n-------------------------\n`;
+            let totalPrice = 0;
+
+            Object.keys(cart).forEach(id => {
+                const item = menuItems.find(m => m.id == id);
+                if (item) {
+                    const qty = cart[id];
+                    const itemTotal = item.price * qty;
+                    totalPrice += itemTotal;
+                    summary += `• ${item.name} (عدد ${qty}) = ${itemTotal} ج.م\n`;
+                }
+            });
+
+            summary += `-------------------------\n💰 *إجمالي الفاتورة:* ${totalPrice} ج.م`;
+
+            // Clipboard fallback logic
+            const tempInput = document.createElement('textarea');
+            tempInput.value = summary;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast('تم نسخ ملخص الطلب بنجاح! يمكنك إرساله للويتر');
+        }
+
+
+        // HELPERS
+        function esc(t) {
+            return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function todayKey() { return new Date().toLocaleDateString('en-CA'); }
+
+        // CAFE NAME
+        function loadCafeName() {
+            const n = localStorage.getItem('beity_cafe_name');
+            if (n) document.getElementById('cafe-name').innerText = n;
+        }
+        function updateCafeName(v) {
+            v = v.trim();
+            if (!v) return;
+            localStorage.setItem('beity_cafe_name', v);
+            document.getElementById('cafe-name').innerText = v;
+            document.title = v;
+            showToast('تم تغيير اسم الكافيه');
+        }
+
+        // ORDERS LOG
+        function loadOrders() {
+            try { return JSON.parse(localStorage.getItem('beity_cafe_orders')) || []; } catch (e) { return []; }
+        }
+        function saveOrders(o) { localStorage.setItem('beity_cafe_orders', JSON.stringify(o)); }
+
+        function confirmOrder() {
+            const ids = Object.keys(cart);
+            if (ids.length === 0) { showToast('السلة فارغة، أضف أصناف أولاً', true); return; }
+            const items = [];
+            let total = 0;
+            ids.forEach(id => {
+                const item = menuItems.find(m => m.id == id);
+                if (!item) return;
+                items.push({ name: item.name, price: item.price, qty: cart[id] });
+                total += item.price * cart[id];
+            });
+            const orders = loadOrders();
+            orders.push({ id: Date.now(), date: todayKey(), time: Date.now(), items, total });
+            saveOrders(orders);
+            cart = {};
+            renderMenu();
+            renderCartDrawer();
+            updateCartBadge();
+            toggleCartDrawer();
+            showToast('تم تسجيل الطلب في طلبات اليوم');
+        }
+
+        function deleteOrder(id) {
+            if (!confirm('حذف هذا الطلب من طلبات اليوم؟')) return;
+            saveOrders(loadOrders().filter(o => o.id !== id));
+            renderOwnerTab();
+        }
+
+        function clearPeriod() {
+            if (!confirm(ordersMode === 'day' ? 'مسح كل طلبات هذا اليوم؟ لا يمكن التراجع.' : 'مسح كل طلبات هذا الشهر؟ لا يمكن التراجع.')) return;
+            const ids = new Set(periodOrders().map(o => o.id));
+            saveOrders(loadOrders().filter(o => !ids.has(o.id)));
+            renderOwnerTab();
+            showToast('تم المسح');
+        }
+
+        // OWNER ACCESS
+        function promptOwnerAccess() {
+            document.getElementById('pin-input').value = '';
+            document.getElementById('pin-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('pin-input').focus(), 50);
+        }
+        function closePinModal() { document.getElementById('pin-modal').classList.add('hidden'); }
+        function verifyPin() {
+            if (document.getElementById('pin-input').value === OWNER_PIN) {
+                closePinModal();
+                openOwnerModal();
+            } else {
+                showToast('الباسورد غير صحيح!', true);
+            }
+        }
+
+        let ownerTab = 'orders';
+        function openOwnerModal() {
+            document.getElementById('owner-modal').classList.remove('hidden');
+            setOwnerTab(ownerTab);
+        }
+        function closeOwnerModal() { document.getElementById('owner-modal').classList.add('hidden'); }
+
+        function setOwnerTab(tab) {
+            ownerTab = tab;
+            document.querySelectorAll('.otab').forEach(b => {
+                b.className = 'otab py-2 rounded-lg ' + (b.id === 'otab-' + tab ? 'bg-cafe-dark text-white' : 'bg-white text-slate-600');
+            });
+            renderOwnerTab();
+        }
+
+        function renderOwnerTab() {
+            const c = document.getElementById('owner-tab-content');
+            if (ownerTab === 'names') renderNamesTab(c);
+            else if (ownerTab === 'prices') renderPricesTab(c);
+            else if (ownerTab === 'add') renderAddTab(c);
+            else if (ownerTab === 'qr') renderQrTab(c);
+            else if (ownerTab === 'pass') renderPassTab(c);
+            else renderOrdersTab(c);
+        }
+
+        function renderNamesTab(c) {
+            let html = `
+                <label class="text-xs font-bold text-slate-700">اسم الكافيه</label>
+                <input type="text" value="${esc(document.getElementById('cafe-name').innerText)}" onchange="updateCafeName(this.value)" class="w-full text-sm p-2 mt-1 mb-4 rounded-lg border border-slate-300">
+                <h4 class="text-xs font-bold text-slate-700 mb-2">أسماء الأصناف</h4>
+                <div class="space-y-2">`;
+            menuItems.forEach(item => {
+                html += `<div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                    <span>${item.icon || '☕'}</span>
+                    <input type="text" value="${esc(item.name)}" onchange="updateItemName(${item.id}, this.value)" class="flex-grow text-xs p-1.5 border rounded bg-white font-bold text-cafe-dark">
+                </div>`;
+            });
+            c.innerHTML = html + '</div>';
+        }
+
+        function renderPricesTab(c) {
+            let html = '<h4 class="text-xs font-bold text-slate-700 mb-2">أسعار الأصناف</h4><div class="space-y-2">';
+            menuItems.forEach(item => {
+                html += `<div class="flex items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+                    <div class="flex items-center gap-2 overflow-hidden flex-grow">
+                        <span>${item.icon || '☕'}</span>
+                        <span class="font-bold text-slate-800 truncate">${esc(item.name)}</span>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <input type="number" value="${item.price}" onchange="updateItemPrice(${item.id}, this.value)" class="w-16 p-1 border rounded text-center font-bold bg-white text-cafe-dark">
+                        <span class="text-[10px] text-slate-500">ج.م</span>
+                        <button onclick="toggleItemAvailability(${item.id})" class="px-2 py-1 rounded font-bold text-[10px] ${item.available ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${item.available ? 'متوفر' : 'غير متوفر'}</button>
+                        <button onclick="deleteItem(${item.id})" class="text-red-500 hover:text-red-700 px-1"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>`;
+            });
+            c.innerHTML = html + '</div>';
+        }
+
+        function renderAddTab(c) {
+            c.innerHTML = `
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 space-y-2.5">
+                    <h4 class="text-xs font-bold text-cafe-dark">إضافة منتج جديد</h4>
+                    <input type="text" id="new-name" placeholder="اسم المنتج (مثلاً: كابتشينو فانيليا)" class="w-full text-xs p-2 rounded-lg border border-slate-300">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="new-price" placeholder="السعر (ج.م)" class="w-full text-xs p-2 rounded-lg border border-slate-300">
+                        <select id="new-cat" class="w-full text-xs p-2 rounded-lg border border-slate-300">
+                            <option value="hot">مشروبات سخنة</option>
+                            <option value="cold">مشروبات ساقعة</option>
+                            <option value="sweets">كيكات وحلويات</option>
+                        </select>
+                    </div>
+                    <input type="text" id="new-desc" placeholder="وصف قصير للمنتج..." class="w-full text-xs p-2 rounded-lg border border-slate-300">
+                    <input type="text" id="new-icon" placeholder="رمز تعبيري Emoji (مثلاً ☕ أو 🍰)" class="w-full text-xs p-2 rounded-lg border border-slate-300">
+                    <button onclick="saveNewItem()" class="w-full py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700">حفظ المنتج</button>
+                </div>
+                <button onclick="resetMenuToDefault()" class="mt-4 w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold">
+                    <i class="fa-solid fa-rotate-right"></i> استعادة القائمة الافتراضية
+                </button>`;
+        }
+
+        let ordersMode = 'day';
+        let ordersDay = todayKey();
+        let ordersMonth = todayKey().slice(0, 7);
+
+        function setOrdersMode(m) { ordersMode = m; renderOwnerTab(); }
+        function setOrdersDay(v) { if (v) { ordersDay = v; renderOwnerTab(); } }
+        function setOrdersMonth(v) { if (v) { ordersMonth = v; renderOwnerTab(); } }
+
+        function periodOrders() {
+            return loadOrders().filter(o => ordersMode === 'day' ? o.date === ordersDay : o.date.startsWith(ordersMonth));
+        }
+
+        function renderOrdersTab(c) {
+            const orders = periodOrders().sort((a, b) => b.time - a.time);
+            const total = orders.reduce((s, o) => s + o.total, 0);
+            const agg = {};
+            orders.forEach(o => o.items.forEach(i => { agg[i.name] = (agg[i.name] || 0) + i.qty; }));
+            const isDay = ordersMode === 'day';
+            const label = isDay
+                ? new Date(ordersDay + 'T12:00:00').toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+                : new Date(ordersMonth + '-15T12:00:00').toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+
+            let html = `
+                <div class="grid grid-cols-2 gap-1 p-1 bg-slate-100 rounded-xl mb-2 text-xs font-bold">
+                    <button onclick="setOrdersMode('day')" class="py-1.5 rounded-lg ${isDay ? 'bg-white shadow text-cafe-dark' : 'text-slate-500'}">يوم</button>
+                    <button onclick="setOrdersMode('month')" class="py-1.5 rounded-lg ${!isDay ? 'bg-white shadow text-cafe-dark' : 'text-slate-500'}">شهر</button>
+                </div>
+                ${isDay
+                    ? `<input type="date" value="${ordersDay}" onchange="setOrdersDay(this.value)" class="w-full text-sm p-2 mb-3 rounded-lg border border-slate-300">`
+                    : `<input type="month" value="${ordersMonth}" onchange="setOrdersMonth(this.value)" class="w-full text-sm p-2 mb-3 rounded-lg border border-slate-300">`}
+                <div class="bg-cafe-dark text-white rounded-2xl p-4 mb-3 flex items-center justify-between">
+                    <div>
+                        <p class="text-[11px] text-amber-200">${isDay ? 'إجمالي اليوم' : 'إجمالي الشهر'} (${label})</p>
+                        <p class="text-2xl font-black text-amber-300">${total} <span class="text-xs font-normal">ج.م</span></p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[11px] text-amber-200">عدد الطلبات</p>
+                        <p class="text-2xl font-black">${orders.length}</p>
+                    </div>
+                </div>`;
+
+            if (orders.length === 0) {
+                html += `<div class="text-center py-8 text-slate-400 text-xs font-bold">لا توجد طلبات مسجلة في هذه الفترة</div>`;
+            } else {
+                html += `<h4 class="text-xs font-bold text-slate-700 mb-1.5">ملخص الأصناف المباعة</h4>
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-2.5 mb-3 text-xs space-y-1">`;
+                Object.keys(agg).forEach(n => { html += `<div class="flex justify-between"><span>${esc(n)}</span><b>× ${agg[n]}</b></div>`; });
+                html += `</div><h4 class="text-xs font-bold text-slate-700 mb-1.5">الطلبات</h4><div class="space-y-2">`;
+                orders.forEach(o => {
+                    const d = new Date(o.time);
+                    const t = (isDay ? '' : d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) + ' - ') + d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                    html += `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-slate-500">${t}</span>
+                            <button onclick="deleteOrder(${o.id})" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        ${o.items.map(i => `<div class="flex justify-between"><span>${esc(i.name)} × ${i.qty}</span><span>${i.price * i.qty} ج.م</span></div>`).join('')}
+                        <div class="flex justify-between border-t border-dashed mt-1.5 pt-1.5 font-extrabold text-cafe-dark"><span>الإجمالي</span><span>${o.total} ج.م</span></div>
+                    </div>`;
+                });
+                html += `</div>
+                    <button onclick="clearPeriod()" class="mt-4 w-full py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 text-[11px] font-bold">
+                        <i class="fa-solid fa-trash-can"></i> ${isDay ? 'مسح طلبات هذا اليوم' : 'مسح طلبات هذا الشهر'}
+                    </button>`;
+            }
+            c.innerHTML = html;
+        }
+
+        function updateItemName(id, v) {
+            v = v.trim();
+            const item = menuItems.find(m => m.id === id);
+            if (item && v) {
+                item.name = v;
+                saveMenuData();
+                renderMenu();
+                showToast('تم تغيير الاسم');
+            }
+        }
+
+        function updateItemPrice(id, newPrice) {
+            const item = menuItems.find(m => m.id === id);
+            if (item) {
+                item.price = parseFloat(newPrice) || 0;
+                saveMenuData();
+                renderMenu();
+                showToast(`تم تحديث سعر ${item.name}`);
+            }
+        }
+
+        function toggleItemAvailability(id) {
+            const item = menuItems.find(m => m.id === id);
+            if (item) {
+                item.available = !item.available;
+                saveMenuData();
+                renderMenu();
+                renderOwnerTab();
+            }
+        }
+
+        function deleteItem(id) {
+            if (!confirm('حذف هذا الصنف؟')) return;
+            menuItems = menuItems.filter(m => m.id !== id);
+            saveMenuData();
+            renderMenu();
+            renderOwnerTab();
+            showToast('تم حذف الصنف');
+        }
+
+        function saveNewItem() {
+            const name = document.getElementById('new-name').value.trim();
+            const price = parseFloat(document.getElementById('new-price').value);
+            const category = document.getElementById('new-cat').value;
+            const description = document.getElementById('new-desc').value.trim();
+            const icon = document.getElementById('new-icon').value.trim() || '☕';
+            if (!name || isNaN(price)) { showToast('يرجى كتابة الاسم والسعر بشكل صحيح', true); return; }
+            menuItems.unshift({
+                id: Date.now(), name, price, category,
+                description: description || 'صنف جديد مميز ولذيذ.',
+                icon, available: true, popular: false
+            });
+            saveMenuData();
+            renderMenu();
+            renderAddTab(document.getElementById('owner-tab-content'));
+            showToast('تمت إضافة المنتج بنجاح');
+        }
+
+        function resetMenuToDefault() {
+            if (!confirm('استعادة القائمة الافتراضية؟ هتضيع كل تعديلاتك على الأصناف والأسعار.')) return;
+            menuItems = [...DEFAULT_MENU];
+            saveMenuData();
+            renderMenu();
+            renderOwnerTab();
+            showToast('تمت استعادة القائمة الافتراضية');
+        }
+
+        function exportUpdatedData() {
+            const data = { menu: menuItems, orders: loadOrders() };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const a = document.createElement('a');
+            a.setAttribute("href", dataStr);
+            a.setAttribute("download", "beity_cafe_data.json");
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            showToast('تم تحميل ملف البيانات');
+        }
+
+
+
+        // CHANGE PASSWORD
+        function renderPassTab(c) {
+            c.innerHTML = `
+                <div class="space-y-2.5">
+                    <h4 class="text-xs font-bold text-slate-700">تغيير كلمة المرور</h4>
+                    <input type="password" id="pw-old" placeholder="كلمة المرور الحالية" class="w-full text-sm p-2 rounded-lg border border-slate-300">
+                    <input type="password" id="pw-new" maxlength="12" placeholder="كلمة المرور الجديدة (4 أحرف على الأقل)" class="w-full text-sm p-2 rounded-lg border border-slate-300">
+                    <input type="password" id="pw-new2" maxlength="12" placeholder="أعد كتابة كلمة المرور الجديدة" class="w-full text-sm p-2 rounded-lg border border-slate-300">
+                    <button onclick="changePassword()" class="w-full py-2 bg-cafe-dark text-white rounded-lg text-xs font-bold hover:bg-cafe-medium">حفظ كلمة المرور</button>
+                </div>`;
+        }
+
+        function changePassword() {
+            const o = document.getElementById('pw-old').value;
+            const n = document.getElementById('pw-new').value;
+            const n2 = document.getElementById('pw-new2').value;
+            if (o !== OWNER_PIN) { showToast('كلمة المرور الحالية غير صحيحة', true); return; }
+            if (n.length < 4) { showToast('كلمة المرور الجديدة لازم تكون 4 أحرف على الأقل', true); return; }
+            if (n !== n2) { showToast('كلمتا المرور الجديدتان غير متطابقتين', true); return; }
+            OWNER_PIN = n;
+            localStorage.setItem('beity_cafe_pin', n);
+            renderPassTab(document.getElementById('owner-tab-content'));
+            showToast('تم تغيير كلمة المرور');
+        }
+
+        // QR IMAGE (owner uploads own image)
+        function getQrImage() { try { return localStorage.getItem('beity_cafe_qr'); } catch (e) { return null; } }
+
+        function renderQrTab(c) {
+            const img = getQrImage();
+            c.innerHTML = `
+                <div class="text-center">
+                    <h4 class="text-xs font-bold text-slate-700 mb-3">صورة الكيو آر كود</h4>
+                    ${img ? `<div class="inline-block p-3 bg-white border border-slate-200 rounded-2xl shadow-inner mb-3"><img src="${img}" alt="QR" class="w-48 h-48 object-contain"></div>`
+                          : `<div class="w-48 h-48 mx-auto mb-3 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 text-xs font-bold">لا توجد صورة بعد</div>`}
+                    <input type="file" id="qr-file" accept="image/*" class="hidden" onchange="uploadQr(this)">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="document.getElementById('qr-file').click()" class="py-2 rounded-xl bg-cafe-accent text-white text-xs font-bold hover:bg-amber-600">
+                            <i class="fa-solid fa-image"></i> ${img ? 'تغيير الصورة' : 'رفع صورة'}
+                        </button>
+                        <button onclick="printQr()" ${img ? '' : 'disabled'} class="py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold ${img ? 'hover:bg-slate-200' : 'opacity-40'}">
+                            <i class="fa-solid fa-print"></i> طباعة
+                        </button>
+                    </div>
+                    ${img ? `<button onclick="removeQr()" class="mt-2 w-full py-2 rounded-xl border border-red-200 bg-red-50 text-red-600 text-[11px] font-bold"><i class="fa-solid fa-trash-can"></i> حذف الصورة</button>` : ''}
+                </div>`;
+        }
+
+        function uploadQr(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const im = new Image();
+                im.onload = () => {
+                    const max = 600;
+                    const r = Math.min(1, max / Math.max(im.width, im.height));
+                    const cv = document.createElement('canvas');
+                    cv.width = Math.round(im.width * r);
+                    cv.height = Math.round(im.height * r);
+                    const ctx = cv.getContext('2d');
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(0, 0, cv.width, cv.height);
+                    ctx.drawImage(im, 0, 0, cv.width, cv.height);
+                    try {
+                        localStorage.setItem('beity_cafe_qr', cv.toDataURL('image/png'));
+                        showToast('تم حفظ صورة الكيو آر كود');
+                    } catch (err) {
+                        showToast('الصورة كبيرة، جرب صورة أصغر', true);
+                    }
+                    renderQrTab(document.getElementById('owner-tab-content'));
+                };
+                im.onerror = () => showToast('الملف مش صورة صالحة', true);
+                im.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeQr() {
+            if (!confirm('حذف صورة الكيو آر كود؟')) return;
+            localStorage.removeItem('beity_cafe_qr');
+            renderQrTab(document.getElementById('owner-tab-content'));
+            showToast('تم حذف الصورة');
+        }
+
+        function printQr() {
+            const img = getQrImage();
+            if (!img) return;
+            const w = window.open('', '_blank');
+            if (!w) { showToast('المتصفح منع نافذة الطباعة', true); return; }
+            w.document.write('<html dir="rtl"><body style="margin:0;display:flex;align-items:center;justify-content:center;height:100vh"><img src="' + img + '" style="max-width:90%;max-height:90%" onload="window.print()"></body></html>');
+            w.document.close();
+        }
+
+        // TOAST NOTIFICATIONS        // TOAST NOTIFICATIONS
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const msgSpan = document.getElementById('toast-message');
+            const icon = document.getElementById('toast-icon');
+
+            msgSpan.innerText = message;
+            if (isError) {
+                icon.className = 'fa-solid fa-triangle-exclamation text-red-400 text-sm';
+            } else {
+                icon.className = 'fa-solid fa-circle-check text-emerald-400 text-sm';
+            }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
